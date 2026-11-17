@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>Secret Santa</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:15px;
+    font-family:Arial,sans-serif;
+    background:#f3f5f7;
+    overscroll-behavior-y:none;
+}
+
+.container{
+    max-width:600px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#c62828;
+}
+
+input{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    margin-top:5px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.btnAdd{
+    background:#2e7d32;
+}
+
+.btnCreate{
+    background:#1565c0;
+}
+
+.btnCreate:disabled{
+    background:#9e9e9e;
+    cursor:not-allowed;
+}
+
+.lista{
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+
+.lista li{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+
+.deleteBtn{
+    background:none;
+    border:none;
+    color:red;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.counter{
+    text-align:center;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+.info{
+    text-align:center;
+    color:#666;
+    margin-top:10px;
+}
+
+.hourglass{
+	font-size:60px;
+	display:inline-block;
+	animation:gira 1.5s ease-in-out infinite;
+}
+
+@keyframes gira{
+
+	0%{
+		transform:rotate(0deg);
+	}
+
+	50%{
+		transform:rotate(180deg);
+	}
+
+	100%{
+		transform:rotate(360deg);
+	}
+
+}
+
+
+
+
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <h1>ESTRAZIONE SEGRETA</h1>
+
+        <label>Nome Stanza</label>
+        <input id="roomName"
+               type="text"
+               placeholder="Es. Natale Famiglia Perfetti"
+			   oninput="salvaDati()">
+    </div>
+
+    <div class="card">
+
+        <label>Nome partecipante</label>
+
+        <input id="participantName"
+               type="text"
+               placeholder="Inserisci il nome del partecipante">
+
+        <button class="btnAdd" onclick="aggiungiPartecipante()">
+            Aggiungi
+        </button>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Partecipanti</h3>
+		<div id="statusList"></div>
+
+        <ul id="participantsList" class="lista"></ul>
+
+        <div id="counter" class="counter">
+            0 partecipanti
+        </div>
+
+        <div id="minMsg" class="info">
+            Minimo 3 partecipanti
+        </div>
+
+        <button id="createBtn"
+                class="btnCreate"
+                disabled
+                onclick="creaStanza()">
+            CREA E INVITA
+        </button>
+		
+		<button onclick="nuovaStanza()">
+			ELIMINA STANZA
+		</button>
+		
+				
+		
+
+    </div>
+
+</div>
+
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    collection,
+    addDoc
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAuWGQqsF1-njy-LF1KljCH6YBg7C6vsWE",
+  authDomain: "estrazione-segreta.firebaseapp.com",
+  projectId: "estrazione-segreta",
+  storageBucket: "estrazione-segreta.firebasestorage.app",
+  messagingSenderId: "303398969746",
+  appId: "1:303398969746:web:254d2d369352d7436d614b"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+window.db = db;
+window.collection = collection;
+window.addDoc = addDoc;
+window.doc = doc;
+window.setDoc = setDoc;
+window.getDoc = getDoc;
+
+</script>
+
+
+
+
+
+
+<script>
+
+let partecipanti = [];
+let roomId = "";
+let stanzaCreata = false;
+let statoPartecipanti = {};
+let assegnazioni = {};
+let tokenPartecipanti = {};
+let linksPartecipanti = {};
+
+caricaDati();
+aperturaAutomaticaLink();
+
+function aggiungiPartecipante(){
+
+    const input = document.getElementById("participantName");
+    const nome = input.value.trim();
+
+    if(nome === "")
+        return;
+
+    if(partecipanti.includes(nome)){
+        alert("Partecipante già presente");
+        return;
+    }
+
+    partecipanti.push(nome);
+
+    input.value = "";
+
+    aggiornaLista();
+	salvaDati();
+}
+
+
+function eliminaPartecipante(index){
+
+    partecipanti.splice(index,1);
+
+    aggiornaLista();
+	salvaDati();
+}
+
+
+function aggiornaLista(){
+
+    const lista = document.getElementById("participantsList");
+
+    lista.innerHTML = "";
+
+    partecipanti.forEach((nome,index)=>{
+
+        const disabilitato =
+            stanzaCreata
+            ? "disabled"
+            : "";
+
+        lista.innerHTML += `
+			<li>
+				<span>${nome}</span>
+
+				<div style="display:flex;gap:5px;align-items:center;">
+
+					<button class="deleteBtn"
+							${disabilitato}
+							onclick="eliminaPartecipante(${index})">
+						🗑️
+					</button>
+
+					${
+						stanzaCreata
+						? `
+							<button
+								style="width:auto;padding:6px 8px;background:#1976d2;"
+								onclick="copiaLink('${nome}')">
+								COPIA LINK
+							</button>
+
+							<button
+								style="width:auto;padding:6px 8px;background:#2e7d32;"
+								onclick="inviaLink('${nome}')">
+								INVIA LINK
+							</button>
+						`
+						: ""
+					}
+
+				</div>
+			</li>
+		`;
+
+	});
+
+    document.getElementById("counter").innerText =
+        partecipanti.length +
+        (partecipanti.length === 1
+        ? " partecipante"
+        : " partecipanti");
+
+    if(stanzaCreata){
+
+        document.getElementById("createBtn").disabled = true;
+
+        bloccaStanza();
+
+    }else{
+
+        document.getElementById("createBtn").disabled =
+            partecipanti.length < 3;
+
+    }
+
+}
+
+
+function generaAssegnazioni(){
+
+    let valide = false;
+
+    while(!valide){
+
+        assegnazioni = {};
+
+        let estratti = [...partecipanti];
+
+        estratti.sort(() => Math.random() - 0.5);
+
+        valide = true;
+
+        for(let i = 0; i < partecipanti.length; i++){
+
+            const persona = partecipanti[i];
+            const regaloPer = estratti[i];
+
+            if(persona === regaloPer){
+                valide = false;
+                break;
+            }
+
+            assegnazioni[persona] = regaloPer;
+        }
+
+        if(!valide)
+            continue;
+
+        for(const persona in assegnazioni){
+
+            const destinatario = assegnazioni[persona];
+
+            if(
+                assegnazioni[destinatario] === persona
+            ){
+                valide = false;
+                break;
+            }
+        }
+    }
+}
+
+
+function generaToken(){
+
+    return Math.random().toString(36).substring(2,12);
+
+}
+
+
+function generaLinkPartecipante(nome){
+
+    return roomId + "|" + tokenPartecipanti[nome];
+
+}
+
+
+function trovaPartecipanteDaToken(token){
+	
+	for(const nome in tokenPartecipanti){
+		
+		if(tokenPartecipanti[nome] === token){
+			
+			return nome;
+		
+		}
+	
+	}
+	
+	return null;
+
+}
+
+
+function tokenValido(token){
+
+    return trovaPartecipanteDaToken(token) !== null;
+
+}
+
+
+function linkValido(link){
+
+    for(const nome in linksPartecipanti){
+
+        if(linksPartecipanti[nome] === link){
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+
+function trovaNomeDaLink(link){
+
+    for(const nome in linksPartecipanti){
+
+        if(linksPartecipanti[nome] === link){
+
+            return nome;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+function trovaTokenDaLink(link){
+
+    const nome =
+        trovaNomeDaLink(link);
+
+    if(!nome){
+
+        return null;
+
+    }
+
+    return tokenPartecipanti[nome];
+
+}
+
+
+function trovaDestinatarioDaLink(link){
+
+    const token =
+        trovaTokenDaLink(link);
+
+    if(!token){
+
+        return null;
+
+    }
+
+    return trovaDestinatarioDaToken(token);
+
+}
+
+
+function haGiaEstrattoDaLink(link){
+
+    const token =
+        trovaTokenDaLink(link);
+
+    if(!token){
+
+        return false;
+
+    }
+
+    return haGiaEstratto(token);
+
+}
+
+
+function estraiDaLink(link){
+
+	
+
+    const token =
+        trovaTokenDaLink(link);
+
+	
+	
+    if(!token){
+
+        return null;
+
+    }
+	
+	
+
+    return estraiDaToken(token);
+
+}
+
+
+function ottieniRisultatoDaLink(link){
+
+    if(!linkValido(link)){
+
+        return null;
+
+    }
+
+    const token =
+        trovaTokenDaLink(link);
+
+    return {
+
+        nome:
+            trovaNomeDaLink(link),
+
+        destinatario:
+            trovaDestinatarioDaToken(token),
+
+        haEstratto:
+            haGiaEstratto(token)
+
+    };
+
+}
+
+
+function trovaDestinatarioDaToken(token){
+    
+	const partecipante =
+        
+		trovaPartecipanteDaToken(token);
+    
+	if(!partecipante){
+        
+		return null;
+    
+	}
+    
+	return assegnazioni[partecipante];
+
+}
+
+
+function haGiaEstratto(token){
+
+    const partecipante =
+        trovaPartecipanteDaToken(token);
+
+    if(!partecipante){
+
+        return false;
+
+    }
+
+    return statoPartecipanti[partecipante];
+
+}
+
+
+function registraEstrazione(token){
+
+    const partecipante =
+        trovaPartecipanteDaToken(token);
+
+    if(!partecipante){
+
+        return false;
+
+    }
+	
+	if(statoPartecipanti[partecipante]){
+		return true;
+	}
+	
+    statoPartecipanti[partecipante] = true;
+
+    salvaDati();
+
+    aggiornaStatoPartecipanti();
+
+    return true;
+
+}
+
+
+function estraiDaToken(token){
+
+    if(!tokenValido(token)){
+	
+			alert("TOKEN NON VALIDO");
+
+        return null;
+
+    }
+	
+
+    registraEstrazione(token);
+
+	
+    return trovaDestinatarioDaToken(token);
+
+}
+
+
+function mostraSchermataPartecipante(link){
+
+	const risultato =
+		ottieniRisultatoDaLink(link);
+
+	if(!risultato){
+		alert("Link non valido");
+		return;
+	}
+
+	let html = "";
+
+	if(risultato.haEstratto){
+
+		html = `
+			<div class="card">
+				<h2>${risultato.nome}</h2>
+				<p>Hai già estratto.</p>
+				<h3>${risultato.destinatario}</h3>
+			</div>
+		`;
+
+	}else{
+
+		html = `
+			<div class="card">
+				<h2>${risultato.nome}</h2>
+
+				<p>Premi il pulsante per estrarre</p>
+
+				<button onclick="avviaEstrazione('${link}')">
+					ESTRAI
+				</button>
+
+			</div>
+												 
+							 
+		  
+			  
+
+		  
+		`;
+
+	}
+
+
+	document.querySelector(".container").innerHTML =
+		html;
+
+}
+
+
+function avviaEstrazione(link){
+
+	document.querySelector(".container").innerHTML = `
+		<div class="card">
+			<div class="hourglass">⏳</div>
+			<p>Estrazione in corso...</p>
+		</div>
+		   
+												
+							
+		 
+			 
+		 
+	`;
+
+
+	setTimeout(() => {
+		
+		const destinatario =
+			estraiDaLink(link);
+			
+		document.querySelector(".container").innerHTML = `
+			<div class="card">
+				<h2>Hai estratto:</h2>
+				<h1>${destinatario}</h1>
+			</div>
+		`;
+		
+
+	},3000);
+
+}
+
+
+async function caricaStanzaFirebase(idStanza){
+
+    try{
+
+        const docRef =
+            window.doc(window.db, "stanze", idStanza);
+
+        const snapshot =
+            await window.getDoc(docRef);
+
+        if(!snapshot.exists()){
+
+            alert("Stanza non trovata");
+
+            return null;
+
+        }
+
+        return snapshot.data();
+
+    }catch(error){
+
+        alert(
+            "Errore lettura Firebase: " +
+            error.message
+        );
+
+        return null;
+
+    }
+
+}
+
+
+
+async function aperturaAutomaticaLink(){
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const link =
+        params.get("link");
+
+    if(!link){
+        return;
+    }
+
+    const parti = link.split("|");
+
+    const idStanza = parti[0];
+
+    const dati =
+        await caricaStanzaFirebase(idStanza);
+
+    if(!dati){
+        return;
+    }
+
+    partecipanti =
+        dati.partecipanti || [];
+
+    assegnazioni =
+        dati.assegnazioni || {};
+
+    statoPartecipanti =
+        dati.statoPartecipanti || {};
+
+    tokenPartecipanti =
+        dati.tokenPartecipanti || {};
+
+    linksPartecipanti =
+        dati.linksPartecipanti || {};
+
+    roomId =
+        dati.roomId || "";
+
+    mostraSchermataPartecipante(link);
+
+}
+
+
+
+
+
+
+function creaStanza(){
+
+	if(stanzaCreata){
+		return;
+	}
+
+    const stanza =
+        document.getElementById("roomName").value.trim();
+
+    if(stanza === ""){
+        alert("Inserisci il nome della stanza");
+        return;
+    }
+
+    if(roomId === ""){
+
+		roomId = generaIdStanza();
+
+		salvaDati();
+	}
+	
+	partecipanti.forEach(nome => {
+
+		statoPartecipanti[nome] = false;
+		
+		tokenPartecipanti[nome] = generaToken();
+		
+		linksPartecipanti[nome] =
+			generaLinkPartecipante(nome);
+		
+	});
+	
+	generaAssegnazioni();
+	
+	stanzaCreata = true;
+
+	salvaDati();
+	
+	salvaStanzaFirebase();
+	
+	aggiornaLista();
+	
+	/*
+	alert(
+		JSON.stringify(tokenPartecipanti, null, 2)
+	);
+	*/
+	
+	/*
+	alert(
+		JSON.stringify(linksPartecipanti, null, 2)
+	);
+	*/
+	
+	
+	/*
+	const primoLink =
+		Object.values(linksPartecipanti)[0];
+
+	mostraSchermataPartecipante(primoLink);
+	*/
+	
+	
+	/*
+	alert(
+		JSON.stringify(assegnazioni, null, 2)
+	);
+	*/
+
+	/*
+    alert(
+        "Stanza creata!\n\n" +
+        "Nome: " + stanza +
+        "\nID: " + roomId +
+        "\nPartecipanti: " + partecipanti.length
+    );
+	*/
+	
+	
+	// stanzaCreata = true;
+	
+	aggiornaStatoPartecipanti();
+
+	bloccaStanza();
+
+	// salvaDati();
+	
+	
+	
+}
+
+
+async function salvaStanzaFirebase(){
+
+    try{
+
+        const nomeStanza =
+            document.getElementById("roomName").value;
+
+        await window.setDoc(
+			window.doc(window.db, "stanze", roomId),
+			{
+
+				roomId: roomId,
+				nomeStanza: nomeStanza,
+				partecipanti: partecipanti,
+				assegnazioni: assegnazioni,
+				statoPartecipanti: statoPartecipanti,
+				tokenPartecipanti: tokenPartecipanti,
+				linksPartecipanti: linksPartecipanti,
+				dataCreazione: new Date().toISOString()
+
+			}
+		);
+
+        console.log("Stanza salvata su Firebase");
+
+    }catch(error){
+
+        alert(
+            "Errore salvataggio Firebase: " +
+            error.message
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+
+
+function nuovaStanza(){
+
+    if(!confirm("Eliminare definitivamente la stanza corrente?"))
+        return;
+
+    partecipanti = [];
+	roomId = "";
+	stanzaCreata = false;
+	statoPartecipanti = {};
+	assegnazioni = {};
+	tokenPartecipanti = {};
+	linksPartecipanti = {};
+	
+
+    document.getElementById("roomName").value = "";
+	
+	document.getElementById("roomName").disabled = false;
+
+	document.getElementById("participantName").disabled = false;
+
+	document.querySelector(".btnAdd").disabled = false;
+	
+	document.getElementById("statusList").innerHTML = "";
+
+    aggiornaLista();
+	localStorage.clear();
+}
+
+
+
+
+
+
+
+
+document.addEventListener(
+    'touchmove',
+    function(e){
+        if(window.scrollY === 0){
+            e.preventDefault();
+        }
+    },
+    {passive:false}
+);
+
+
+function generaIdStanza(){
+
+    const caratteri =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let id = "";
+
+    for(let i=0; i<6; i++){
+
+        id += caratteri.charAt(
+            Math.floor(
+                Math.random() * caratteri.length
+            )
+        );
+    }
+
+    return id;
+}
+
+
+function bloccaStanza(){
+
+    document.getElementById("roomName").disabled = true;
+
+    document.getElementById("participantName").disabled = true;
+
+    document.querySelector(".btnAdd").disabled = true;
+
+    document.getElementById("createBtn").disabled = true;
+
+    const cestini =
+        document.querySelectorAll(".deleteBtn");
+
+    cestini.forEach(btn => {
+
+        btn.disabled = true;
+
+        btn.style.opacity = "0.4";
+    });
+}
+
+
+function aggiornaStatoPartecipanti(){
+
+    let html = "";
+
+    for(const nome in statoPartecipanti){
+
+        html += `
+			<div>
+				${
+					statoPartecipanti[nome]
+					? "✅"
+					: "❌"
+				}
+				${nome}
+				${
+					statoPartecipanti[nome]
+					? " - Ha estratto"
+					: " - Non ha ancora estratto"
+				}
+			</div>
+		`;
+
+    }
+	
+	
+    const stato =
+		document.getElementById("statusList");
+
+	if(stato){
+		stato.innerHTML = html;
+	}
+	
+}
+
+
+
+					  
+
+					   
+						  
+						   
+
+ 
+
+
+
+
+
+function copiaLink(nome){
+
+    const link =
+		window.location.origin +
+		window.location.pathname +
+		"?link=" +
+		linksPartecipanti[nome];
+
+    if(!link){
+        alert("Link non disponibile");
+        return;
+    }
+
+    navigator.clipboard.writeText(link);
+
+    alert("Link copiato");
+}
+
+
+
+function inviaLink(nome){
+
+    const link =
+		window.location.origin +
+		window.location.pathname +
+		"?link=" +
+		linksPartecipanti[nome];
+
+    if(!link){
+        alert("Link non disponibile");
+        return;
+    }
+
+    if(navigator.share){
+
+        navigator.share({
+            title: "Secret Santa",
+            text: "Il tuo link personale:",
+            url: link
+        });
+
+    }else{
+
+        navigator.clipboard.writeText(link);
+
+        alert("Condivisione non disponibile. Link copiato.");
+    }
+}
+
+
+
+
+function salvaDati(){
+
+    const roomNameInput =
+		document.getElementById("roomName");
+
+	if(roomNameInput){
+
+		localStorage.setItem(
+			"roomName",
+			roomNameInput.value
+		);
+
+	}
+
+    localStorage.setItem(
+        "participants",
+        JSON.stringify(partecipanti)
+    );
+	
+	localStorage.setItem(
+		"roomId",
+		roomId
+	);
+	
+	localStorage.setItem(
+		"stanzaCreata",
+		stanzaCreata
+	);
+	localStorage.setItem(
+		"assegnazioni",
+		JSON.stringify(assegnazioni)
+	);
+	localStorage.setItem(
+		"statoPartecipanti",
+		JSON.stringify(statoPartecipanti)
+	);
+	
+	localStorage.setItem(
+		"tokenPartecipanti",
+		JSON.stringify(tokenPartecipanti)
+	);
+	localStorage.setItem(
+		"linksPartecipanti",
+		JSON.stringify(linksPartecipanti)
+	);
+	
+	
+}
+
+function caricaDati(){
+
+    const stanza =
+        localStorage.getItem("roomName");
+
+    const lista =
+        localStorage.getItem("participants");
+
+    if(stanza){
+
+        document.getElementById("roomName").value =
+            stanza;
+    }
+
+    if(lista){
+
+        partecipanti =
+            JSON.parse(lista);
+
+        aggiornaLista();
+    }
+	const idSalvato =
+		localStorage.getItem("roomId");
+
+	if(idSalvato){
+
+		roomId = idSalvato;
+	}
+	
+	const statoSalvato =
+		localStorage.getItem("stanzaCreata");
+
+	if(statoSalvato === "true"){
+
+		stanzaCreata = true;
+		
+		aggiornaLista();
+
+				
+		
+	}
+
+	
+	const assegnazioniSalvate =
+		localStorage.getItem("assegnazioni");
+
+	if(assegnazioniSalvate){
+
+		assegnazioni =
+			JSON.parse(assegnazioniSalvate);
+	}
+	
+	
+	const statoPartecipantiSalvato =
+		localStorage.getItem("statoPartecipanti");
+
+	if(statoPartecipantiSalvato){
+
+		statoPartecipanti =
+			JSON.parse(statoPartecipantiSalvato);
+	}
+	
+	if(stanzaCreata){
+
+		aggiornaStatoPartecipanti();
+		
+		bloccaStanza();
+
+	}
+	
+	
+	const tokenSalvati =
+		localStorage.getItem("tokenPartecipanti");
+
+	if(tokenSalvati){
+
+		tokenPartecipanti =
+			JSON.parse(tokenSalvati);
+
+	}
+	
+	
+	const linksSalvati =
+		localStorage.getItem("linksPartecipanti");
+
+	if(linksSalvati){
+
+		linksPartecipanti =
+			JSON.parse(linksSalvati);
+
+	}
+	
+	/*
+	alert(
+		JSON.stringify(linksPartecipanti, null, 2)
+	);
+	*/
+	
+	
+	
+}
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
