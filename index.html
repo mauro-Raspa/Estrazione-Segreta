@@ -657,11 +657,17 @@ function mostraSchermataPartecipante(link){
 	if(risultato.haEstratto){
 
 		html = `
-			<div class="card">
-				<h2>${risultato.nome}</h2>
-				<p>Hai già estratto.</p>
-				<h3>${risultato.destinatario}</h3>
-			</div>
+				<div class="card">
+					<h2>${risultato.nome}</h2>
+
+					<p>Hai già estratto.</p>
+
+					<h3>${risultato.destinatario}</h3>
+
+					<button onclick="chiudiSchermata()">
+						CHIUDI
+					</button>
+				</div>
 		`;
 
 	}else{
@@ -716,10 +722,15 @@ function avviaEstrazione(link){
 			estraiDaLink(link);
 			
 		document.querySelector(".container").innerHTML = `
-			<div class="card">
-				<h2>Hai estratto:</h2>
-				<h1>${destinatario}</h1>
-			</div>
+				<div class="card">
+					<h2>Hai estratto:</h2>
+
+					<h1>${destinatario}</h1>
+
+					<button onclick="chiudiSchermata()">
+						CHIUDI
+					</button>
+				</div>
 		`;
 		
 
@@ -1072,7 +1083,19 @@ function aggiornaStatoPartecipanti(){
 
 
 
-					  
+function chiudiSchermata(){
+
+	document.querySelector(".container").innerHTML = `
+		<div class="card">
+			<h2>Estrazione completata</h2>
+
+			<p>
+				Adesso premi la X in alto a destra per chiudere il browser.
+			</p>
+		</div>
+	`;
+
+}					  
 
 					   
 						  
