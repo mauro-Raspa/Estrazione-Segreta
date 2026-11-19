@@ -141,7 +141,7 @@ button{
         <input id="roomName"
                type="text"
                placeholder="Es. Natale Famiglia Perfetti"
-			   oninput="salvaDati()">
+			   oninput="salvaDatiFirebase()">
     </div>
 
     <div class="card">
@@ -1276,9 +1276,11 @@ function salvaDati(){
 
 async function caricaDatiFirebase(){
 
+	/*
     if(roomId === ""){
         return false;
     }
+	*/
 
     try{
 
