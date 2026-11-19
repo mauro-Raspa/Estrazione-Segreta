@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA3</h1>
+        <h1>ESTRAZIONE SEGRETA4</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -245,6 +245,20 @@ let statoPartecipanti = {};
 let assegnazioni = {};
 let tokenPartecipanti = {};
 let linksPartecipanti = {};
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const roomDaUrl =
+    params.get("room");
+
+if(roomDaUrl){
+
+    roomId = roomDaUrl;
+
+}
 
 caricaDatiFirebase();
 // caricaDati();
@@ -848,10 +862,20 @@ function creaStanza(){
 
     if(roomId === ""){
 
-		roomId = generaIdStanza();
+    	roomId = generaIdStanza();
 
-		salvaDatiFirebase();
-		//salvaDati();
+    	const nuovoUrl =
+	        window.location.pathname +
+        	"?room=" +
+        	roomId;
+
+    	window.history.replaceState(
+        	{},
+        	"",
+        	nuovoUrl
+    	);
+
+    	salvaDatiFirebase();
 	}
 	
 	partecipanti.forEach(nome => {
@@ -1278,11 +1302,11 @@ function salvaDati(){
 
 async function caricaDatiFirebase(){
 
-	/*
+	
     if(roomId === ""){
         return false;
     }
-	*/
+	
 
     try{
 
