@@ -202,6 +202,7 @@ import {
     doc,
     setDoc,
     getDoc,
+	deleteDoc,
     collection,
     addDoc
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
@@ -245,7 +246,8 @@ let assegnazioni = {};
 let tokenPartecipanti = {};
 let linksPartecipanti = {};
 
-caricaDati();
+caricaDatiFirebase();
+//caricaDati();
 // aperturaAutomaticaLink();
 
 function aggiungiPartecipante(){
@@ -266,7 +268,9 @@ function aggiungiPartecipante(){
     input.value = "";
 
     aggiornaLista();
-	salvaDati();
+
+	salvaDatiFirebase();
+	//salvaDati();
 }
 
 
@@ -275,7 +279,8 @@ function eliminaPartecipante(index){
     partecipanti.splice(index,1);
 
     aggiornaLista();
-	salvaDati();
+	salvaDatiFirebase();
+	//salvaDati();
 }
 
 
@@ -614,7 +619,8 @@ function registraEstrazione(token){
 	
     statoPartecipanti[partecipante] = true;
 
-    salvaDati();
+    salvaDatiFirebase();
+	//salvaDati();
 
     aggiornaStatoPartecipanti();
 
@@ -844,7 +850,8 @@ function creaStanza(){
 
 		roomId = generaIdStanza();
 
-		salvaDati();
+		salvaDatiFirebase();
+		//salvaDati();
 	}
 	
 	partecipanti.forEach(nome => {
@@ -862,7 +869,8 @@ function creaStanza(){
 	
 	stanzaCreata = true;
 
-	salvaDati();
+	salvaDatiFirebase();
+	//salvaDati();
 	
 	salvaStanzaFirebase();
 	
@@ -958,10 +966,29 @@ async function salvaStanzaFirebase(){
 
 
 
-function nuovaStanza(){
+async function nuovaStanza(){
 
     if(!confirm("Eliminare definitivamente la stanza corrente?"))
         return;
+	if(roomId !== ""){
+
+    try{
+
+        await deleteDoc(
+            window.doc(window.db, "stanze", roomId)
+        );
+
+    }catch(error){
+
+        alert(
+            "Errore eliminazione Firebase: " +
+            error.message
+        );
+
+        return;
+    }
+
+}
 
     partecipanti = [];
 	roomId = "";
@@ -1157,8 +1184,46 @@ function inviaLink(nome){
 }
 
 
+async function salvaDatiFirebase(){
 
+    if(roomId === ""){
+        return;
+    }
 
+    try{
+
+        const nomeStanza =
+            document.getElementById("roomName").value;
+
+        await window.setDoc(
+            window.doc(window.db, "stanze", roomId),
+            {
+
+                roomId: roomId,
+                roomName: nomeStanza,
+                partecipanti: partecipanti,
+                stanzaCreata: stanzaCreata,
+                assegnazioni: assegnazioni,
+                statoPartecipanti: statoPartecipanti,
+                tokenPartecipanti: tokenPartecipanti,
+                linksPartecipanti: linksPartecipanti
+
+            }
+        );
+
+    }catch(error){
+
+        alert(
+            "Errore salvataggio Firebase: " +
+            error.message
+        );
+
+    }
+
+}
+
+	
+/*
 function salvaDati(){
 
     const roomNameInput =
@@ -1207,7 +1272,86 @@ function salvaDati(){
 	
 	
 }
+*/
 
+async function caricaDatiFirebase(){
+
+    if(roomId === ""){
+        return false;
+    }
+
+    try{
+
+        const docRef =
+            window.doc(window.db, "stanze", roomId);
+
+        const snapshot =
+            await window.getDoc(docRef);
+
+        if(!snapshot.exists()){
+
+            return false;
+
+        }
+
+        const dati =
+            snapshot.data();
+
+        partecipanti =
+            dati.partecipanti || [];
+
+        stanzaCreata =
+            dati.stanzaCreata || false;
+
+        assegnazioni =
+            dati.assegnazioni || {};
+
+        statoPartecipanti =
+            dati.statoPartecipanti || {};
+
+        tokenPartecipanti =
+            dati.tokenPartecipanti || {};
+
+        linksPartecipanti =
+            dati.linksPartecipanti || {};
+
+        const roomNameInput =
+            document.getElementById("roomName");
+
+        if(roomNameInput){
+
+            roomNameInput.value =
+                dati.roomName || "";
+
+        }
+
+        aggiornaLista();
+
+        if(stanzaCreata){
+
+            aggiornaStatoPartecipanti();
+
+            bloccaStanza();
+
+        }
+
+        return true;
+
+    }catch(error){
+
+        alert(
+            "Errore lettura Firebase: " +
+            error.message
+        );
+
+        return false;
+
+    }
+
+}
+
+	
+/*
 function caricaDati(){
 
     const stanza =
@@ -1309,7 +1453,7 @@ function caricaDati(){
 	
 	
 }
-
+*/
 
 
 
