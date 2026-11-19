@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA4</h1>
+        <h1>ESTRAZIONE SEGRETA5</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -1324,6 +1324,11 @@ async function caricaDatiFirebase(){
 
         const dati =
             snapshot.data();
+
+		alert(
+    		"CARICATO\n\n" +
+    		JSON.stringify(dati, null, 2)
+		);
 
         partecipanti =
             dati.partecipanti || [];
