@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 4</h1>
+        <h1>ESTRAZIONE SEGRETA 5</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -225,7 +225,8 @@ window.addDoc = addDoc;
 window.doc = doc;
 window.setDoc = setDoc;
 window.getDoc = getDoc;
-	
+window.firebasePronto = true;
+alert("FIREBASE PRONTO");
 aperturaAutomaticaLink();
 
 </script>
@@ -1301,11 +1302,10 @@ function salvaDati(){
 
 async function caricaDatiFirebase(){
 	
-	alert(
-        "roomId = [" +
-        roomId +
-        "]"
-    );
+alert(
+    "firebasePronto = " +
+    window.firebasePronto
+);
 
 	
     if(roomId === ""){
@@ -1314,6 +1314,11 @@ async function caricaDatiFirebase(){
 	
 
     try{
+
+		alert(
+			"typeof window.doc = " +
+			typeof window.doc
+		);
 
         const docRef =
             window.doc(window.db, "stanze", roomId);
