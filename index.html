@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 3</h1>
+        <h1>ESTRAZIONE SEGRETA 4</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -1323,9 +1323,13 @@ async function caricaDatiFirebase(){
 
         if(!snapshot.exists()){
 
+			alert("STANZA NON TROVATA");
+
             return false;
 
         }
+
+		alert("STANZA TROVATA");
 
         const dati =
             snapshot.data();
