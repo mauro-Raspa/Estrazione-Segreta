@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 1</h1>
+        <h1>ESTRAZIONE SEGRETA 2</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -225,7 +225,7 @@ window.addDoc = addDoc;
 window.doc = doc;
 window.setDoc = setDoc;
 window.getDoc = getDoc;
-	
+window.deleteDoc = deleteDoc;	
 						  
 aperturaAutomaticaLink();
 
@@ -998,7 +998,7 @@ async function nuovaStanza(){
 
     try{
 
-        await deleteDoc(
+        await window.deleteDoc(
             window.doc(window.db, "stanze", roomId)
         );
 
