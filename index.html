@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 2</h1>
+        <h1>ESTRAZIONE SEGRETA 3</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -1300,6 +1300,12 @@ function salvaDati(){
 */
 
 async function caricaDatiFirebase(){
+	
+	alert(
+        "roomId = [" +
+        roomId +
+        "]"
+    );
 
 	
     if(roomId === ""){
