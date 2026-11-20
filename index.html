@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 2</h1>
+        <h1>ESTRAZIONE SEGRETA 3</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -1016,6 +1016,11 @@ async function nuovaStanza(){
 
     partecipanti = [];
 	roomId = "";
+		window.history.replaceState(
+			{},
+			"",
+			window.location.pathname
+		);
 	stanzaCreata = false;
 	statoPartecipanti = {};
 	assegnazioni = {};
