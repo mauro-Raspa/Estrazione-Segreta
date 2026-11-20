@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 6</h1>
+        <h1>ESTRAZIONE SEGRETA 1</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -225,8 +225,8 @@ window.addDoc = addDoc;
 window.doc = doc;
 window.setDoc = setDoc;
 window.getDoc = getDoc;
-window.firebasePronto = true;
-alert("FIREBASE PRONTO");
+	
+						  
 aperturaAutomaticaLink();
 
 </script>
@@ -236,7 +236,7 @@ aperturaAutomaticaLink();
 
 
 
-<script type="module">
+<script>
 	
 let partecipanti = [];
 let roomId = "";
@@ -894,9 +894,9 @@ function creaStanza(){
 	stanzaCreata = true;
 
 	salvaDatiFirebase();
-	//salvaDati();
+	// salvaDati();
 	
-	salvaStanzaFirebase();
+	// salvaStanzaFirebase();
 	
 	aggiornaLista();
 	
@@ -955,7 +955,7 @@ async function salvaStanzaFirebase(){
     try{
 
         const nomeStanza =
-            document.getElementById("roomName")?.value || "";
+            document.getElementById("roomName").value;
 
         await window.setDoc(
 			window.doc(window.db, "stanze", roomId),
@@ -1301,11 +1301,11 @@ function salvaDati(){
 */
 
 async function caricaDatiFirebase(){
-	
-alert(
-    "firebasePronto = " +
-    window.firebasePronto
-);
+
+	  
+						 
+						 
+  
 
 	
     if(roomId === ""){
@@ -1314,11 +1314,11 @@ alert(
 	
 
     try{
-
-		alert(
-			"typeof window.doc = " +
-			typeof window.doc
-		);
+ 
+		
+						   
+					
+	
 
         const docRef =
             window.doc(window.db, "stanze", roomId);
@@ -1327,14 +1327,14 @@ alert(
             await window.getDoc(docRef);
 
         if(!snapshot.exists()){
-
-			alert("STANZA NON TROVATA");
+  
+							   
 
             return false;
 
         }
-
-		alert("STANZA TROVATA");
+  
+						  
 
         const dati =
             snapshot.data();
