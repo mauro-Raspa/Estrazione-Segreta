@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA1</h1>
+        <h1>ESTRAZIONE SEGRETA 2</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -954,7 +954,7 @@ async function salvaStanzaFirebase(){
     try{
 
         const nomeStanza =
-            document.getElementById("roomName").value;
+            document.getElementById("roomName")?.value || "";
 
         await window.setDoc(
 			window.doc(window.db, "stanze", roomId),
@@ -1218,7 +1218,7 @@ async function salvaDatiFirebase(){
     try{
 
         const nomeStanza =
-            document.getElementById("roomName").value;
+            document.getElementById("roomName")?.value || "";
 
         await window.setDoc(
             window.doc(window.db, "stanze", roomId),
