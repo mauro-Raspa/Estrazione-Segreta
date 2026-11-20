@@ -135,13 +135,12 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA5</h1>
+        <h1>ESTRAZIONE SEGRETA1</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
                type="text"
-               placeholder="Es. Natale Famiglia Perfetti"
-			   oninput="salvaDatiFirebase()">
+               placeholder="Es. Natale Famiglia Perfetti">
     </div>
 
     <div class="card">
@@ -283,7 +282,7 @@ function aggiungiPartecipante(){
 
     aggiornaLista();
 
-	salvaDatiFirebase();
+	// salvaDatiFirebase();
 	// salvaDati();
 }
 
@@ -293,8 +292,8 @@ function eliminaPartecipante(index){
     partecipanti.splice(index,1);
 
     aggiornaLista();
-	salvaDatiFirebase();
-	//salvaDati();
+	// salvaDatiFirebase();
+	// salvaDati();
 }
 
 
