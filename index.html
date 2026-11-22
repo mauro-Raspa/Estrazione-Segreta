@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 5</h1>
+        <h1>ESTRAZIONE SEGRETA 1</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -201,6 +201,7 @@ import {
     doc,
     setDoc,
     getDoc,
+	getDocs,
 	deleteDoc,
     collection,
     addDoc
@@ -225,6 +226,7 @@ window.addDoc = addDoc;
 window.doc = doc;
 window.setDoc = setDoc;
 window.getDoc = getDoc;
+window.getDocs = getDocs;
 window.deleteDoc = deleteDoc;	
 window.firebaseReady = true;						  
 aperturaAutomaticaLink();
@@ -264,11 +266,70 @@ window.addEventListener("load", () => {
 
     if(window.firebaseReady){
 
-        caricaDatiFirebase();
+        inizializzaApp();
 
     }
 
 });
+
+
+async function inizializzaApp(){
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    // Se è un link personale, non cercare altre stanze
+    if(params.get("link")){
+        return;
+    }
+
+    // Se è presente un roomId nell'indirizzo,
+    // prova prima a caricare quella stanza
+    const roomDaUrl = params.get("room");
+
+    if(roomDaUrl){
+
+        roomId = roomDaUrl;
+
+        const caricata = await caricaDatiFirebase();
+
+        if(caricata){
+            return;
+        }
+
+        roomId = "";
+
+    }
+
+    // Cerca tutte le stanze presenti su Firebase
+    try{
+
+        const snapshot = await window.getDocs(
+            window.collection(window.db, "stanze")
+        );
+
+        if(snapshot.empty){
+
+            roomId = "";
+
+            return;
+
+        }
+
+        // Prende una stanza ancora presente
+        roomId = snapshot.docs[0].id;
+
+        await caricaDatiFirebase();
+
+    }catch(error){
+
+        alert("Errore ricerca stanze: " + error.message);
+
+    }
+
+}
+
+
 	
 // caricaDati();
 // aperturaAutomaticaLink();
@@ -851,15 +912,27 @@ async function aperturaAutomaticaLink(){
 }
 
 
-
-
-
-
-function creaStanza(){
+async function creaStanza(){
 
 	if(stanzaCreata){
 		return;
 	}
+
+
+	// Controlla se esiste già una stanza su Firebase
+
+	const controllo = await window.getDocs(
+    	window.collection(window.db, "stanze")
+	);
+
+	if(!controllo.empty){
+
+    	alert("Esiste già una stanza! Eliminala prima di crearne una nuova.");
+
+    	return;
+
+	}
+
 
     const stanza =
         document.getElementById("roomName").value.trim();
