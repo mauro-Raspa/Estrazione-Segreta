@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA </h1>
+        <h1>ESTRAZIONE SEGRETA 1</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -873,8 +873,25 @@ async function aperturaAutomaticaLink(){
         await caricaStanzaFirebase(idStanza);
 
     if(!dati){
-        return;
-    }
+
+    	document.querySelector(".container").innerHTML = `
+        	<div class="card" style="text-align:center;">
+            	<h2>🎅 Secret Santa</h2>
+
+            	<h3>Estrazione non più disponibile</h3>
+
+            	<p>
+                	Questa stanza è stata eliminata dall'organizzatore.
+            	</p>
+
+            	<p>
+                	Il tuo link personale non è più valido.
+            	</p>
+        	</div>
+    	`;
+
+    	return;
+	}
 
     partecipanti =
         dati.partecipanti || [];
