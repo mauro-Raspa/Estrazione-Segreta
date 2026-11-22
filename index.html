@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 4</h1>
+        <h1>ESTRAZIONE SEGRETA 5</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -394,7 +394,7 @@ function aggiornaLista(){
 					</button>
 
 					${
-						stanzaCreata
+						linksPartecipanti[nome]
 						? `
 							<button
 								style="width:auto;padding:6px 8px;background:#1976d2;"
@@ -1414,7 +1414,7 @@ async function caricaDatiFirebase(){
             dati.linksPartecipanti || {};
 
         // Recupera il nome della stanza
-
+		
         const roomNameInput =
             document.getElementById("roomName");
 
@@ -1422,6 +1422,7 @@ async function caricaDatiFirebase(){
             roomNameInput.value =
                 dati.roomName || "";
         }
+		
 
         // Ricostruisce la lista dei partecipanti
 
