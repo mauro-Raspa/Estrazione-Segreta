@@ -135,7 +135,7 @@ button{
 <div class="container">
 
     <div class="card">
-        <h1>ESTRAZIONE SEGRETA 1</h1>
+        <h1>ESTRAZIONE SEGRETA 2</h1>
 
         <label>Nome Stanza</label>
         <input id="roomName"
@@ -604,24 +604,16 @@ function haGiaEstrattoDaLink(link){
 }
 
 
-function estraiDaLink(link){
-
-	
+async function estraiDaLink(link){
 
     const token =
         trovaTokenDaLink(link);
 
-	
-	
     if(!token){
-
         return null;
-
     }
-	
-	
 
-    return estraiDaToken(token);
+    return await estraiDaToken(token);
 
 }
 
@@ -686,25 +678,23 @@ function haGiaEstratto(token){
 }
 
 
-function registraEstrazione(token){
+async function registraEstrazione(token){
 
     const partecipante =
         trovaPartecipanteDaToken(token);
 
     if(!partecipante){
-
         return false;
-
     }
-	
-	if(statoPartecipanti[partecipante]){
-		return true;
-	}
-	
+
+    if(statoPartecipanti[partecipante]){
+        return true;
+    }
+
     statoPartecipanti[partecipante] = true;
 
-    salvaDatiFirebase();
-	//salvaDati();
+    // Salva su Firebase e aspetta il completamento
+    await salvaDatiFirebase();
 
     aggiornaStatoPartecipanti();
 
@@ -713,24 +703,21 @@ function registraEstrazione(token){
 }
 
 
-function estraiDaToken(token){
+async function estraiDaToken(token){
 
     if(!tokenValido(token)){
-	
-			alert("TOKEN NON VALIDO");
+
+        alert("TOKEN NON VALIDO");
 
         return null;
 
     }
-	
 
-    registraEstrazione(token);
+    await registraEstrazione(token);
 
-	
     return trovaDestinatarioDaToken(token);
 
 }
-
 
 function mostraSchermataPartecipante(link){
 
@@ -792,39 +779,39 @@ function mostraSchermataPartecipante(link){
 
 function avviaEstrazione(link){
 
-	document.querySelector(".container").innerHTML = `
-		<div class="card">
-			<div class="hourglass">⏳</div>
-			<p>Estrazione in corso...</p>
-		</div>
-		   
-												
-							
-		 
-			 
-		 
-	`;
+    document.querySelector(".container").innerHTML = `
+        <div class="card">
+            <div class="hourglass">⏳</div>
+            <p>Estrazione in corso...</p>
+        </div>
+    `;
 
+    setTimeout(async () => {
 
-	setTimeout(() => {
-		
-		const destinatario =
-			estraiDaLink(link);
-			
-		document.querySelector(".container").innerHTML = `
-				<div class="card">
-					<h2>Hai estratto:</h2>
+        const destinatario =
+            await estraiDaLink(link);
 
-					<h1>${destinatario}</h1>
+        if(!destinatario){
 
-					<button onclick="chiudiSchermata()">
-						CHIUDI
-					</button>
-				</div>
-		`;
-		
+            alert("Errore durante l'estrazione");
 
-	},3000);
+            return;
+
+        }
+
+        document.querySelector(".container").innerHTML = `
+            <div class="card">
+                <h2>Hai estratto:</h2>
+
+                <h1>${destinatario}</h1>
+
+                <button onclick="chiudiSchermata()">
+                    CHIUDI
+                </button>
+            </div>
+        `;
+
+    },3000);
 
 }
 
@@ -1389,23 +1376,11 @@ function salvaDati(){
 
 async function caricaDatiFirebase(){
 
-	  
-						 
-						 
-  
-
-	
     if(roomId === ""){
         return false;
     }
-	
 
     try{
- 
-		
-						   
-					
-	
 
         const docRef =
             window.doc(window.db, "stanze", roomId);
@@ -1414,29 +1389,18 @@ async function caricaDatiFirebase(){
             await window.getDoc(docRef);
 
         if(!snapshot.exists()){
-  
-							   
-
             return false;
-
         }
-  
-						  
 
-        const dati =
-			snapshot.data();
+        const dati = snapshot.data();
 
-		alert(
-			"stanzaCreata = " +
-			dati.stanzaCreata
-		);
+        // Recupera tutti i dati della stanza
 
-		
         partecipanti =
             dati.partecipanti || [];
 
         stanzaCreata =
-            dati.stanzaCreata || false;
+            dati.stanzaCreata === true;
 
         assegnazioni =
             dati.assegnazioni || {};
@@ -1450,17 +1414,22 @@ async function caricaDatiFirebase(){
         linksPartecipanti =
             dati.linksPartecipanti || {};
 
+        // Recupera il nome della stanza
+
         const roomNameInput =
             document.getElementById("roomName");
 
         if(roomNameInput){
-
             roomNameInput.value =
                 dati.roomName || "";
-
         }
 
+        // Ricostruisce la lista dei partecipanti
+
         aggiornaLista();
+
+        // Se la stanza è già stata creata,
+        // ripristina i pulsanti e i blocchi
 
         if(stanzaCreata){
 
@@ -1484,7 +1453,6 @@ async function caricaDatiFirebase(){
     }
 
 }
-
 	
 /*
 function caricaDati(){
