@@ -7,14 +7,16 @@
   "theme_color": "#c62828",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "ESTRAZIONE SEGRETA.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpuse": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "ESTRAZIONE SEGRETA.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpuse": "any maskable"
     }
   ]
 }
